@@ -1,0 +1,128 @@
+<div class="page">
+  <div class="page-header">
+    <h2>My Accounts</h2>
+    <p>View and manage all your bank accounts</p>
+    <button
+      *ngIf="accounts.length > 0 && accounts.length < 2"
+      class="btn btn-primary"
+      (click)="createOtherAccount()"
+      style="margin-top:10px">
+      + Create {{ getOtherAccountLabel() }} Account
+    </button>
+  </div>
+
+  <div class="action-buttons" *ngIf="accounts.length > 0">
+    <a routerLink="/accounts/set-pin" class="btn btn-secondary">Set Transfer PIN</a>
+    <a routerLink="/kyc/submit" class="btn btn-primary">Submit KYC</a>
+    <a routerLink="/kyc/status" class="btn btn-secondary">KYC Status</a>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading accounts...</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <div class="empty-state card" *ngIf="accounts.length === 0">
+      <p>No accounts found.</p>
+      <p>Please complete your KYC to get an account.</p>
+      <a routerLink="/kyc/submit" class="btn btn-primary" style="margin-top:12px">Submit KYC</a>
+    </div>
+
+    <!-- DEACTIVATED BANNER — AccountStatus.Deactivated = 4 -->
+    <div class="kyc-banner kyc-rejected" *ngIf="hasDeactivatedAccount">
+      <div class="banner-content">
+        <strong>⚠️ Account Deactivated</strong>
+        <p>One or more accounts have been deactivated by admin.
+           Withdrawals and transfers are restricted. Please contact support.</p>
+      </div>
+    </div>
+
+    <!-- PIN alert — only when not deactivated -->
+    <div class="pin-alert" *ngIf="accounts.length > 0 && !hasPin && !hasDeactivatedAccount">
+      <span class="alert-text">
+        ⚠ Set your <strong>Transfer PIN</strong> to enable balance viewing, withdrawals, and transfers.
+      </span>
+    </div>
+
+    <div class="accounts-grid" *ngIf="accounts.length > 0">
+      <div class="account-card card" *ngFor="let account of accounts">
+
+        <div class="account-card-header">
+          <div>
+            <div class="account-type-label">{{ getAccountTypeLabel(account.accountType) }} Account</div>
+            <div class="account-number">{{ account.accountNumber }}</div>
+          </div>
+          <span class="badge" [ngClass]="getStatusClass(account.status)">
+            {{ getStatusLabel(account.status) }}
+          </span>
+        </div>
+
+        <div class="account-balance-section">
+          <div class="balance-label">Available Balance</div>
+          <div *ngIf="account.showBalance" class="balance-amount">
+            ₹{{ account.balance | number:'1.2-2' }}
+          </div>
+          <!-- View balance allowed even for deactivated — real bank behaviour -->
+          <button *ngIf="!account.showBalance" class="btn btn-secondary" (click)="viewBalance(account)">
+            View Balance
+          </button>
+        </div>
+
+        <div class="account-meta">
+          <div class="meta-item" *ngIf="account.status === 1">
+            <span class="meta-label">Min. Deposit Required</span>
+            <span class="meta-value">₹{{ account.minimumDepositRequired | number:'1.2-2' }}</span>
+          </div>
+          <div class="meta-item">
+  <span class="meta-label">Transfer Enabled</span>
+  <span class="meta-value">
+    <span class="badge" 
+      [ngClass]="(account.isTransferEnabled && account.status === 2) ? 'badge-success' : 'badge-warning'">
+      {{ (account.isTransferEnabled && account.status === 2) ? 'Yes' : 'No' }}
+    </span>
+  </span>
+</div>
+          <div class="meta-item">
+            <span class="meta-label">Created On</span>
+            <span class="meta-value">{{ account.createdAt | date:'dd MMM yyyy' }}</span>
+          </div>
+        </div>
+
+        <div class="account-actions">
+          <!-- Deposit allowed even for deactivated — real bank behaviour -->
+          <a [routerLink]="'/accounts/deposit'" [queryParams]="{ accountId: account.id }" class="btn btn-primary">
+            Deposit
+          </a>
+          <!-- Transactions view always allowed -->
+          <a [routerLink]="'/transactions/history'" [queryParams]="{ accountId: account.id }" class="btn btn-secondary">
+            Transactions
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+<app-popup
+  [visible]="pinPopupVisible"
+  type="confirm"
+  title="Enter Transfer PIN"
+  message="Please enter your transfer PIN"
+  confirmText="Verify"
+  cancelText="Cancel"
+  [showCancel]="true"
+  [showInput]="true"
+  inputType="password"
+  inputPlaceholder="Enter PIN"
+  (onConfirm)="confirmPin($event)"
+  (onCancel)="pinPopupVisible=false"
+  (onClose)="pinPopupVisible=false">
+</app-popup>
+
+<div *ngIf="pinPopupVisible" class="pin-input-wrapper">
+  <input type="password" [(ngModel)]="enteredPin" placeholder="Enter PIN" class="pin-input" />
+</div>

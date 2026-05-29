@@ -1,0 +1,42 @@
+<div class="popup-overlay" *ngIf="visible" (click)="close()">
+  <div class="popup-box" [ngClass]="type" (click)="$event.stopPropagation()">
+
+    <div class="popup-header" [ngClass]="'header-' + type">
+      <span class="popup-title">{{ title }}</span>
+      <button class="popup-close" (click)="close()">&#x2715;</button>
+    </div>
+<div class="popup-body">
+  <p class="popup-message">{{ message }}</p>
+
+  <div *ngIf="showInput" class="popup-input-group">
+    <input
+      class="popup-input"
+      [type]="inputType"
+      [placeholder]="inputPlaceholder"
+      [(ngModel)]="inputValue"
+    />
+  </div>
+</div>
+
+    <div class="popup-footer">
+      <button
+        *ngIf="showCancel"
+        class="btn btn-secondary"
+        (click)="cancel()">
+        {{ cancelText }}
+      </button>
+      <button
+        class="btn"
+        [ngClass]="{
+          'btn-success': type === 'success',
+          'btn-danger': type === 'error',
+          'btn-warning': type === 'warning',
+          'btn-primary': type === 'confirm'
+        }"
+        (click)="confirm()">
+        {{ confirmText }}
+      </button>
+    </div>
+
+  </div>
+</div>

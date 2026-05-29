@@ -1,0 +1,129 @@
+<div class="page-header">
+  <h2>Account Monitoring</h2>
+  <p>View and manage bank accounts</p>
+</div>
+
+<div class="filter-bar">
+
+  <input
+    class="form-control search-input"
+    placeholder="Search account / user"
+    [ngModel]="search"
+    (ngModelChange)="onSearchInput($event)"
+  />
+
+  <button
+    class="btn btn-primary"
+    [class.active-filter]="status === null"
+    (click)="filterStatus(null)">
+    All
+  </button>
+
+  <button
+    class="btn btn-primary"
+    [class.active-filter]="status === 'Active'"
+    (click)="filterStatus('Active')">
+    Active
+  </button>
+
+  <button
+    class="btn btn-primary"
+    [class.active-filter]="status === 'Deactivated'"
+    (click)="filterStatus('Deactivated')">
+    Inactive
+  </button>
+
+  <button class="btn btn-secondary" (click)="clearFilters()">
+    Clear
+  </button>
+
+</div>
+
+<div class="card table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>Account Number</th>
+        <th>User</th>
+        <th>Email</th>
+        <th>Type</th>
+        <th>Balance</th>
+        <th>Flags</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let acc of accounts; let i = index">
+        <td>{{ (page - 1) * pageSize + i + 1 }}</td>
+        <td>{{ acc.accountNumber }}</td>
+        <td>{{ acc.userName }}</td>
+        <td>{{ acc.email }}</td>
+        <td>{{ getAccountType(acc.accountType) }}</td>
+        <td>₹{{ acc.balance }}</td>
+        <td>
+          <span
+            class="badge"
+            [ngClass]="acc.flagCount >= 3 ? 'badge-danger' : acc.flagCount >= 1 ? 'badge-warning' : 'badge-success'">
+            {{ acc.flagCount }} Flags
+          </span>
+        </td>
+        <td>
+          <span
+            class="badge"
+            [ngClass]="acc.status === 2 ? 'badge-success' : 'badge-danger'">
+            {{ getAccountStatus(acc.status) }}
+          </span>
+        </td>
+        <td>
+          <button
+            class="btn btn-sm"
+            [ngClass]="acc.status === 2 ? 'btn-warning' : 'btn-success'"
+            (click)="toggleAccount(acc)">
+            {{ acc.status === 2 ? 'Deactivate' : 'Activate' }}
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="accounts.length === 0">
+        <td colspan="9" style="text-align:center;">No accounts found</td>
+      </tr>
+    </tbody>
+  </table>
+  <!-- Pagination -->
+<div class="pagination-bar">
+  <button
+    class="btn btn-secondary"
+    (click)="prevPage()"
+    [disabled]="page === 1">
+    Prev
+  </button>
+
+  <span>Page {{ page }}</span>
+
+  <button
+    class="btn btn-secondary"
+    (click)="nextPage()"
+    [disabled]="accounts.length < pageSize">
+    Next
+  </button>
+</div>
+</div>
+
+
+
+<!-- ✅ Popup — same pattern as user management -->
+<app-popup
+  [visible]="popupVisible"
+  [type]="popupType"
+  [title]="popupTitle"
+  [message]="popupMessage"
+  confirmText="Yes"
+  cancelText="No"
+  [showCancel]="true"
+  [showInput]="true"
+  inputPlaceholder="Enter reason (optional)"
+  (onConfirm)="confirmToggle($event)"
+  (onCancel)="cancelPopup()"
+  (onClose)="cancelPopup()">
+</app-popup>

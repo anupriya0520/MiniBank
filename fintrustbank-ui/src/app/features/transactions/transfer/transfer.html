@@ -1,0 +1,178 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Transfer Money</h2>
+    <p>Send money by account number, phone, or saved beneficiary.</p>
+  </div>
+
+  <div class="loading-state card" *ngIf="loadingAccounts">
+    <div class="loading-spinner"></div>
+    <p>Loading accounts...</p>
+  </div>
+
+  <!--
+    accounts list only contains status=2 (Active) + isTransferEnabled accounts.
+    If empty it means:
+    1. Account deactivated (status=4) — backend blocks transfers anyway
+    2. No PIN set — user needs to set PIN
+    3. PendingActivation — user needs to deposit first
+    Message covers all cases clearly.
+  -->
+  <!-- Deactivated user -->
+<div class="no-accounts card" *ngIf="!loadingAccounts && accounts.length === 0 && hasDeactivatedAccount">
+  <p>Your account has been deactivated.</p>
+  <p>Transfers are not allowed. Please contact support.</p>
+  <a routerLink="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<!-- New user or PIN not set -->
+<div class="no-accounts card" *ngIf="!loadingAccounts && accounts.length === 0 && !hasDeactivatedAccount">
+  <p>No transfer-enabled accounts found.</p>
+  <p>Please activate your account and set a transfer PIN first.</p>
+  <div class="no-acc-actions">
+    <a routerLink="/accounts/deposit" class="btn btn-primary">Deposit</a>
+    <a routerLink="/accounts/set-pin" class="btn btn-secondary">Set PIN</a>
+  </div>
+</div>
+
+  <ng-container *ngIf="!loadingAccounts && accounts.length > 0">
+
+    <div class="card account-selector">
+      <label>Transfer From</label>
+      <select class="form-control" (change)="onAccountChange($event)">
+        <option *ngFor="let acc of accounts" [value]="acc.id">
+          {{ acc.accountNumber }} - {{ getAccountTypeLabel(acc.accountType) }}
+        </option>
+      </select>
+    </div>
+
+    <div class="card form-wrapper">
+      <div class="tabs">
+        <button class="tab-btn" [ngClass]="{ 'active': activeTab === 'account' }"
+          (click)="switchTab('account')">By Account No.</button>
+        <button class="tab-btn" [ngClass]="{ 'active': activeTab === 'phone' }"
+          (click)="switchTab('phone')">By Phone</button>
+      </div>
+
+      <!-- Transfer by Account Number -->
+      <form [formGroup]="accountForm" (ngSubmit)="submitTransfer('account')" *ngIf="activeTab === 'account'">
+
+        <div class="form-group">
+          <label>Receiver Account Number</label>
+          <input type="text" class="form-control" formControlName="receiverAccountNumber"
+            placeholder="Enter account number"
+            [ngClass]="{ 'is-invalid': accountForm.get('receiverAccountNumber')?.invalid && accountForm.get('receiverAccountNumber')?.touched }" />
+          <span class="error-text"
+            *ngIf="accountForm.get('receiverAccountNumber')?.invalid && accountForm.get('receiverAccountNumber')?.touched">
+            Receiver account number is required.
+          </span>
+        </div>
+
+        <div class="form-group external-toggle">
+          <label class="toggle-label">
+            <input type="checkbox" (change)="onExternalToggle($event)" [checked]="isExternalTransfer" />
+            &nbsp; Transfer to another bank (External)
+          </label>
+        </div>
+
+        <ng-container *ngIf="isExternalTransfer">
+          <div class="form-group">
+            <label>IFSC Code</label>
+            <input type="text" class="form-control" formControlName="ifscCode"
+              placeholder="e.g. HDFC0001234" maxlength="11" />
+          </div>
+          <div class="form-group">
+            <label>Bank Name <span class="optional">(Optional)</span></label>
+            <input type="text" class="form-control" formControlName="receiverBankName"
+              placeholder="e.g. HDFC Bank" />
+          </div>
+        </ng-container>
+
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" class="form-control" formControlName="amount" placeholder="Enter amount"
+            [ngClass]="{ 'is-invalid': accountForm.get('amount')?.invalid && accountForm.get('amount')?.touched }" />
+          <span class="error-text" *ngIf="accountForm.get('amount')?.invalid && accountForm.get('amount')?.touched">
+            Valid amount is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Transfer PIN</label>
+          <div class="input-group">
+            <input [type]="showPin ? 'text' : 'password'" class="form-control"
+              formControlName="transferPin" placeholder="Enter PIN" maxlength="6"
+              [ngClass]="{ 'is-invalid': accountForm.get('transferPin')?.invalid && accountForm.get('transferPin')?.touched }" />
+            <button type="button" class="toggle-btn" (click)="showPin = !showPin">
+              {{ showPin ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <span class="error-text" *ngIf="accountForm.get('transferPin')?.invalid && accountForm.get('transferPin')?.touched">
+            Transfer PIN is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <input type="text" class="form-control" formControlName="description" placeholder="e.g. Rent payment" />
+        </div>
+
+        <div class="form-actions">
+          <a routerLink="/dashboard" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary" [disabled]="loading">
+            {{ loading ? 'Transferring...' : 'Transfer' }}
+          </button>
+        </div>
+      </form>
+
+      <!-- Transfer by Phone -->
+      <form [formGroup]="phoneForm" (ngSubmit)="submitTransfer('phone')" *ngIf="activeTab === 'phone'">
+
+        <div class="form-group">
+          <label>Receiver Phone Number</label>
+          <input type="text" class="form-control" formControlName="receiverPhone"
+            placeholder="10 digit phone number" maxlength="10"
+            [ngClass]="{ 'is-invalid': phoneForm.get('receiverPhone')?.invalid && phoneForm.get('receiverPhone')?.touched }" />
+          <span class="error-text" *ngIf="phoneForm.get('receiverPhone')?.invalid && phoneForm.get('receiverPhone')?.touched">
+            Valid 10-digit phone number is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" class="form-control" formControlName="amount" placeholder="Enter amount"
+            [ngClass]="{ 'is-invalid': phoneForm.get('amount')?.invalid && phoneForm.get('amount')?.touched }" />
+          <span class="error-text" *ngIf="phoneForm.get('amount')?.invalid && phoneForm.get('amount')?.touched">
+            Valid amount is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Transfer PIN</label>
+          <div class="input-group">
+            <input [type]="showPin ? 'text' : 'password'" class="form-control"
+              formControlName="transferPin" placeholder="Enter PIN" inputmode="numeric" pattern="\d*" maxlength="4" />
+            <button type="button" class="toggle-btn" (click)="showPin = !showPin">
+              {{ showPin ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <span class="error-text" *ngIf="phoneForm.get('transferPin')?.invalid && phoneForm.get('transferPin')?.touched">
+            Transfer PIN is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <input type="text" class="form-control" formControlName="description" placeholder="e.g. Splitting bill" />
+        </div>
+
+        <div class="form-actions">
+          <a routerLink="/dashboard" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary" [disabled]="loading">
+            {{ loading ? 'Transferring...' : 'Transfer' }}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </ng-container>
+</div>

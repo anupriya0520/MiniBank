@@ -1,0 +1,23 @@
+<aside class="sidebar">
+  <nav class="sidebar-nav">
+    <ng-container *ngFor="let group of visibleGroups()">
+      <div class="nav-group">
+        <span class="nav-group-label">{{ group.group }}</span>
+        <ul class="nav-list">
+          <li *ngFor="let item of group.items">
+            <a [routerLink]="item.route"
+               class="nav-item"
+               [class.active]="isActive(item.route)">
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </ng-container>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span class="footer-text">FinTrust v1.0</span>
+  </div>
+
+</aside>

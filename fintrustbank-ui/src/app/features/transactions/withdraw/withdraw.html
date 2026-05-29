@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Withdraw Cash</h2>
+    <p>Withdraw money from your active account.</p>
+  </div>
+
+  <div class="form-wrapper card">
+
+    <div class="loading-state" *ngIf="loadingAccounts">
+      <div class="loading-spinner"></div>
+      <p>Loading accounts...</p>
+    </div>
+
+    <ng-container *ngIf="!loadingAccounts">
+
+      <!--
+        accounts list only contains status=2 (Active) accounts.
+        If accounts is empty it means either:
+        1. Account is Deactivated (status=4) — backend will say "Account is not active"
+        2. Account is PendingActivation (status=1) — user needs to deposit first
+        3. Genuinely no accounts — user needs KYC
+
+        Backend error message handles case 1 clearly.
+        We show a friendly message for case 2 here.
+      -->
+      <!-- Deactivated user — has accounts but all deactivated -->
+<div class="no-accounts" *ngIf="accounts.length === 0 && hasDeactivatedAccount">
+  <p>Your account has been deactivated.</p>
+  <p>Withdrawals are not allowed. Please contact support.</p>
+  <a routerLink="/dashboard" class="btn btn-secondary" style="margin-top: 12px;">
+    Back to Dashboard
+  </a>
+</div>
+
+<!-- New user — no accounts at all -->
+<div class="no-accounts" *ngIf="accounts.length === 0 && !hasDeactivatedAccount">
+  <p>No active accounts found.</p>
+  <p>Please deposit ₹500 to activate your account first.</p>
+  <a routerLink="/accounts/deposit" class="btn btn-primary" style="margin-top: 12px;">
+    Make a Deposit
+  </a>
+</div>
+
+      <form [formGroup]="withdrawForm" (ngSubmit)="onSubmit()" *ngIf="accounts.length > 0">
+
+        <div class="form-group">
+          <label>Select Account</label>
+          <select class="form-control" formControlName="accountId"
+            [ngClass]="{ 'is-invalid': accountId?.invalid && accountId?.touched }">
+            <option value="" disabled>-- Select Account --</option>
+            <option *ngFor="let acc of accounts" [value]="acc.id">
+              {{ acc.accountNumber }} - {{ getAccountTypeLabel(acc.accountType) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" class="form-control" formControlName="amount"
+            placeholder="Enter withdrawal amount"
+            [ngClass]="{ 'is-invalid': amount?.invalid && amount?.touched }" />
+          <span class="error-text" *ngIf="amount?.invalid && amount?.touched">
+            <span *ngIf="amount?.errors?.['required']">Amount is required.</span>
+            <span *ngIf="amount?.errors?.['min']">Amount must be greater than 0.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Transfer PIN</label>
+          <div class="input-group">
+            <input [type]="showPin ? 'text' : 'password'" class="form-control"
+              formControlName="transferPin" placeholder="Enter your transfer PIN" maxlength="6"
+              [ngClass]="{ 'is-invalid': transferPin?.invalid && transferPin?.touched }" />
+            <button type="button" class="toggle-btn" (click)="showPin = !showPin">
+              {{ showPin ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <span class="error-text" *ngIf="transferPin?.invalid && transferPin?.touched">
+            Transfer PIN is required.
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <input type="text" class="form-control" formControlName="description"
+            placeholder="e.g. ATM withdrawal" />
+        </div>
+
+        <div class="form-actions">
+          <a routerLink="/dashboard" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary" [disabled]="loading">
+            {{ loading ? 'Processing...' : 'Withdraw' }}
+          </button>
+        </div>
+
+      </form>
+
+    </ng-container>
+  </div>
+</div>

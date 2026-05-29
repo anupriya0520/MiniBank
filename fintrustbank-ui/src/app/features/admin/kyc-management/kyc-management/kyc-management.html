@@ -1,0 +1,224 @@
+<div class="page">
+  <div class="page-header">
+    <h2>KYC Management</h2>
+    <p>Review and approve or reject user KYC requests.</p>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="filter-btn" [ngClass]="{ 'active': activeFilter === 'pending' }"
+      (click)="setFilter('pending')">
+      Pending <span class="count">{{ getCount('pending') }}</span>
+    </button>
+    <button class="filter-btn" [ngClass]="{ 'active': activeFilter === 'approved' }"
+      (click)="setFilter('approved')">
+      Approved <span class="count">{{ getCount('approved') }}</span>
+    </button>
+    <button class="filter-btn" [ngClass]="{ 'active': activeFilter === 'rejected' }"
+      (click)="setFilter('rejected')">
+      Rejected <span class="count">{{ getCount('rejected') }}</span>
+    </button>
+    <button class="filter-btn" [ngClass]="{ 'active': activeFilter === 'all' }"
+      (click)="setFilter('all')">
+      All <span class="count">{{ getCount('all') }}</span>
+    </button>
+  </div>
+
+  <div class="loading-state card" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading KYC requests...</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <div class="card empty-state" *ngIf="filteredList.length === 0">
+      <p>No {{ activeFilter === 'all' ? '' : activeFilter }} KYC requests found.</p>
+    </div>
+
+    <div class="card" *ngIf="filteredList.length > 0">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Full Name</th>
+              <th>Phone</th>
+              <th>Account Type</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let kyc of filteredList">
+              <td>
+                <div class="user-cell">
+                  <div class="user-initial">{{ kyc.userName?.charAt(0)?.toUpperCase() }}</div>
+                  <div>
+                    <div class="user-name">{{ kyc.userName }}</div>
+                    <div class="user-email">{{ kyc.userEmail }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ kyc.fullName }}</td>
+              <td>{{ kyc.phone }}</td>
+              <td>{{ getAccountTypeLabel(kyc.requestedAccountType) }}</td>
+              <td>{{ kyc.createdAt | date:'dd MMM yyyy' }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusClass(kyc.status)">
+                  {{ getStatusLabel(kyc.status) }}
+                </span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-primary btn-sm"
+                  (click)="openReview(kyc)">
+                  {{ kyc.status === 1 ? 'Review' : 'View' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <div class="panel-overlay" *ngIf="showReviewPanel" (click)="closeReview()"></div>
+
+  <div class="review-panel" [ngClass]="{ 'open': showReviewPanel }">
+
+    <div class="panel-header">
+      <h3>{{ selectedKyc?.status === 1 ? 'Review KYC' : 'KYC Details' }}</h3>
+      <button class="panel-close" (click)="closeReview()">&#x2715;</button>
+    </div>
+
+    <div class="panel-body" *ngIf="selectedKyc">
+
+      <div class="section-title">User Information</div>
+      <div class="kyc-summary">
+        <div class="summary-row">
+          <span class="s-label">User</span>
+          <span class="s-value">{{ selectedKyc.userName }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Email</span>
+          <span class="s-value">{{ selectedKyc.userEmail }}</span>
+        </div>
+      </div>
+
+      <div class="section-title">KYC Details</div>
+      <div class="kyc-summary">
+        <div class="summary-row">
+          <span class="s-label">Full Name</span>
+          <span class="s-value">{{ selectedKyc.fullName }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Date of Birth</span>
+          <span class="s-value">{{ selectedKyc.dateOfBirth | date:'mediumDate' }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Phone</span>
+          <span class="s-value">{{ selectedKyc.phone }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Aadhaar</span>
+          <span class="s-value">XXXX XXXX {{ selectedKyc.aadharNumber?.slice(-4) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Account Type</span>
+          <span class="s-value">{{ getAccountTypeLabel(selectedKyc.requestedAccountType) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Address</span>
+          <span class="s-value">{{ selectedKyc.address }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="s-label">Submitted</span>
+          <span class="s-value">{{ selectedKyc.createdAt | date:'medium' }}</span>
+        </div>
+        <div class="summary-row" *ngIf="selectedKyc.status === 3 && selectedKyc.rejectionReason">
+          <span class="s-label">Rejection Reason</span>
+          <span class="s-value rejection-text">{{ selectedKyc.rejectionReason }}</span>
+        </div>
+      </div>
+
+      <div class="section-title">Aadhaar Document</div>
+      <div class="document-section">
+        <button class="btn-outline" (click)="openDocument(selectedKyc.id)">
+          📄 View Document
+        </button>
+      </div>
+
+      <!-- ✅ Decision section — only for pending KYC -->
+      <ng-container *ngIf="selectedKyc.status === 1">
+
+        <div class="section-title">Decision</div>
+
+        <!-- ✅ rejection reason input — shown only when reject clicked -->
+        <div class="form-group" *ngIf="showRejectionInput">
+          <label>Rejection Reason <span class="required">*</span></label>
+          <textarea
+            class="form-control"
+            [(ngModel)]="rejectionReason"
+            rows="3"
+            placeholder="Explain why KYC is being rejected...">
+          </textarea>
+          <span class="error-text" *ngIf="!rejectionReason.trim()">
+            Rejection reason is required.
+          </span>
+        </div>
+
+        <div class="panel-actions">
+
+          <!-- ✅ Approve button — always visible for pending -->
+          <button
+            *ngIf="!showRejectionInput"
+            type="button"
+            class="btn btn-success"
+            [disabled]="submitting"
+            (click)="approveKyc()">
+            {{ submitting ? 'Processing...' : '✓ Approve KYC' }}
+          </button>
+
+          <!-- ✅ Reject button — shows rejection input first -->
+          <button
+            *ngIf="!showRejectionInput"
+            type="button"
+            class="btn btn-danger"
+            [disabled]="submitting"
+            (click)="initiateReject()">
+            ✕ Reject KYC
+          </button>
+
+          <!-- ✅ Confirm reject — shown only after reject clicked -->
+          <button
+            *ngIf="showRejectionInput"
+            type="button"
+            class="btn btn-danger"
+            [disabled]="submitting || !rejectionReason.trim()"
+            (click)="rejectKyc()">
+            {{ submitting ? 'Processing...' : 'Confirm Rejection' }}
+          </button>
+
+          <!-- ✅ Cancel rejection -->
+          <button
+            *ngIf="showRejectionInput"
+            type="button"
+            class="btn btn-secondary"
+            (click)="showRejectionInput = false; rejectionReason = ''">
+            Cancel
+          </button>
+
+        </div>
+
+      </ng-container>
+
+      <div class="reviewed-banner" *ngIf="selectedKyc.status !== 1">
+        <span *ngIf="selectedKyc.status === 2">✓ This KYC was approved.</span>
+        <span *ngIf="selectedKyc.status === 3">✕ This KYC was rejected.</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,118 @@
+<div class="page-header">
+  <h2>Transaction Monitoring</h2>
+  <p>Monitor suspicious or large transactions</p>
+</div>
+
+<div class="filter-bar">
+
+  <input
+    class="form-control"
+    placeholder="Search transaction or account"
+    [ngModel]="search"
+    (ngModelChange)="onSearchInput($event)"
+  />
+
+  <select
+    class="form-control"
+    [(ngModel)]="type"
+    (change)="filterType(type)">
+    <option value="">All Types</option>
+    <option value="deposit">Deposit</option>
+    <option value="withdraw">Withdraw</option>
+    <option value="transfer">Transfer</option>
+  </select>
+
+  <button class="btn btn-primary" (click)="filterFlagged()">
+    Flagged
+  </button>
+
+  <input
+    type="date"
+    [(ngModel)]="fromDate"
+    class="form-control"
+    [max]="toDate || today"
+    (change)="onDateChange()"
+  />
+
+  <input
+    type="date"
+    [(ngModel)]="toDate"
+    class="form-control"
+    [min]="fromDate || ''"
+    [max]="today"
+    (change)="onDateChange()"
+  />
+
+  <button class="btn btn-secondary" (click)="clearFilters()">
+    Clear
+  </button>
+
+</div>
+
+<div class="card table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>S No</th>
+        <th>Transaction ID</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Balance After</th>
+        <th>Flagged</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr *ngFor="let txn of transactions;let i=index"
+          [style.background]="txn.isFlagged ? '#fff5f5' : ''">
+          <td>{{ (page - 1) * pageSize + i + 1 }}</td>
+        <td>{{txn.transactionNumber}}</td>
+        <td>{{ getTransactionType(txn.type) }}</td>
+        <td>₹{{txn.amount}}</td>
+        <td>{{ getTransactionStatus(txn.status) }}</td>
+        <td>₹{{txn.balanceAfter}}</td>
+        <td>
+          <span class="badge" [ngClass]="txn.isFlagged ? 'badge-danger' : 'badge-success'">
+            {{ txn.isFlagged ? 'Flagged' : 'Normal' }}
+          </span>
+        </td>
+        <td>{{ txn.createdAt | date:'short' }}</td>
+
+        <!-- ✅ inside <tr>, not outside -->
+        <td>
+          <button
+            class="btn btn-sm btn-primary"
+            (click)="viewAccount(txn)">
+            View Account
+          </button>
+        </td>
+
+      </tr>
+
+      <tr *ngIf="transactions.length === 0">
+        <td colspan="8" style="text-align:center;">No transactions found</td> <!-- ✅ 8 not 7 -->
+      </tr>
+
+    </tbody>
+  </table>
+  <div class="pagination-bar">
+  <button
+    class="btn btn-secondary"
+    (click)="prevPage()"
+    [disabled]="page === 1">
+    Prev
+  </button>
+
+  <span>Page {{ page }}</span>
+
+  <button
+    class="btn btn-secondary"
+    (click)="nextPage()"
+    [disabled]="transactions.length < pageSize">
+    Next
+  </button>
+</div>
+</div>

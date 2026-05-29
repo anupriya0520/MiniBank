@@ -1,0 +1,126 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Add Beneficiary</h2>
+    <p>Save a payee for quick and easy future transfers.</p>
+  </div>
+
+  <div class="form-wrapper card">
+
+    <div class="loading-state" *ngIf="loadingAccounts">
+      <div class="loading-spinner"></div>
+      <p>Loading accounts...</p>
+    </div>
+
+    <form [formGroup]="beneficiaryForm" (ngSubmit)="onSubmit()" *ngIf="!loadingAccounts">
+
+      <div class="form-group">
+        <label>Add Beneficiary To Account</label>
+        <select class="form-control" formControlName="accountId">
+          <option value="" disabled>-- Select Your Account --</option>
+          <option *ngFor="let acc of accounts" [value]="acc.id">
+            {{ acc.accountNumber }}
+          </option>
+        </select>
+        <span class="error-text"
+          *ngIf="beneficiaryForm.get('accountId')?.invalid && beneficiaryForm.get('accountId')?.touched">
+          Please select an account.
+        </span>
+      </div>
+
+      <div class="divider">Beneficiary Details</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Beneficiary Name</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="name"
+            placeholder="Full name of the payee"
+            [ngClass]="{ 'is-invalid': name?.invalid && name?.touched }" />
+          <span class="error-text" *ngIf="name?.invalid && name?.touched">
+            <span *ngIf="name?.errors?.['required']">Name is required.</span>
+            <span *ngIf="name?.errors?.['maxlength']">Max 100 characters.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Nickname (Optional)</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="nickname"
+            placeholder="e.g. Mom, Roommate" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account Number</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="accountNumber"
+            placeholder="Beneficiary account number"
+            [ngClass]="{ 'is-invalid': accountNumber?.invalid && accountNumber?.touched }" />
+          <span class="error-text" *ngIf="accountNumber?.invalid && accountNumber?.touched">
+            <span *ngIf="accountNumber?.errors?.['required']">Account number is required.</span>
+            <span *ngIf="accountNumber?.errors?.['maxlength']">Max 20 characters.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number (Optional)</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="phone"
+            placeholder="10 digit mobile number"
+            maxlength="10"
+            [ngClass]="{ 'is-invalid': phone?.invalid && phone?.touched }" />
+          <span class="error-text" *ngIf="phone?.invalid && phone?.touched">
+            Must be exactly 10 digits.
+          </span>
+        </div>
+      </div>
+
+      <!-- ADDED: External bank toggle -->
+      <div class="form-group external-toggle">
+        <label class="toggle-label">
+          <input type="checkbox" (change)="onExternalToggle($event)" [checked]="isExternalBank" />
+          &nbsp; Beneficiary is from another bank (External)
+        </label>
+      </div>
+
+      <!-- ADDED: IFSC and BankName — shown only when external toggle is ON -->
+      <div class="form-row" *ngIf="isExternalBank">
+        <div class="form-group">
+          <label>IFSC Code</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="ifscCode"
+            placeholder="e.g. HDFC0001234"
+            maxlength="11" />
+        </div>
+
+        <div class="form-group">
+          <label>Bank Name <span class="optional">(Optional)</span></label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="bankName"
+            placeholder="e.g. HDFC Bank" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/beneficiaries" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Adding...' : 'Add Beneficiary' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

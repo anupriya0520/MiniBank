@@ -1,0 +1,167 @@
+<div class="page">
+  <div class="page-header">
+    <button class="btn btn-secondary back-btn"
+            (click)="goBack()">
+      ← Back to Accounts
+    </button>
+    <h2>Submit KYC</h2>
+    <p>Complete your identity verification to activate your bank account.</p>
+  </div>
+
+  <div class="loading-state card" *ngIf="checkingKyc">
+    <div class="loading-spinner"></div>
+    <p>Checking KYC status...</p>
+  </div>
+
+  <div class="card already-submitted" *ngIf="!checkingKyc && existingKyc && existingKyc.status !== 3">
+    <h3>KYC Already Submitted</h3>
+    <p>You have already submitted your KYC documents.</p>
+    <div class="status-row">
+      <span>Status:</span>
+      <span class="badge"
+        [ngClass]="{
+          'badge-warning': existingKyc.status === 1,
+          'badge-success': existingKyc.status === 2,
+          'badge-danger':  existingKyc.status === 3
+        }">
+        {{ existingKyc.status === 1 ? 'Pending Review' : existingKyc.status === 2 ? 'Approved' : 'Rejected' }}
+      </span>
+    </div>
+    <a routerLink="/kyc/status" class="btn btn-primary" style="margin-top: 16px;">
+      View KYC Status
+    </a>
+  </div>
+
+  <div class="form-wrapper card" *ngIf="!checkingKyc && (!existingKyc || existingKyc.status === 3)">
+
+    <div class="rejected-notice" *ngIf="existingKyc?.status === 3">
+      <strong>Previous KYC Rejected</strong>
+      <p>Reason: {{ existingKyc?.rejectionReason || 'Not specified.' }}</p>
+      <p>Please resubmit with correct documents.</p>
+    </div>
+
+    <form [formGroup]="kycForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-section-title">Personal Information</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="fullName"
+            placeholder="As per Aadhaar card"
+            [ngClass]="{ 'is-invalid': fullName?.invalid && fullName?.touched }" />
+          <span class="error-text" *ngIf="fullName?.invalid && fullName?.touched">
+            <span *ngIf="fullName?.errors?.['required']">Full name is required.</span>
+            <span *ngIf="fullName?.errors?.['maxlength']">Max 150 characters.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input
+            type="date"
+            class="form-control"
+            formControlName="dateOfBirth"
+            [ngClass]="{ 'is-invalid': dateOfBirth?.invalid && dateOfBirth?.touched }" />
+          <span class="error-text" *ngIf="dateOfBirth?.invalid && dateOfBirth?.touched">
+            Date of birth is required.
+          </span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="phone"
+            placeholder="10 digit mobile number"
+            maxlength="10"
+            [ngClass]="{ 'is-invalid': phone?.invalid && phone?.touched }" />
+          <span class="error-text" *ngIf="phone?.invalid && phone?.touched">
+            <span *ngIf="phone?.errors?.['required']">Phone is required.</span>
+            <span *ngIf="phone?.errors?.['pattern']">Must be exactly 10 digits.</span>
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Account Type</label>
+          <select
+            class="form-control"
+            formControlName="requestedAccountType"
+            [ngClass]="{ 'is-invalid': requestedAccountType?.invalid && requestedAccountType?.touched }">
+            <option value="" disabled>-- Select Account Type --</option>
+            <option value="1">Savings</option>
+            <option value="2">Current</option>
+            <option value="3">Fixed Deposit</option>
+          </select>
+          <span class="error-text" *ngIf="requestedAccountType?.invalid && requestedAccountType?.touched">
+            Account type is required.
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Residential Address</label>
+        <textarea
+          class="form-control"
+          formControlName="address"
+          placeholder="Enter your full address"
+          rows="3"
+          [ngClass]="{ 'is-invalid': address?.invalid && address?.touched }">
+        </textarea>
+        <span class="error-text" *ngIf="address?.invalid && address?.touched">
+          <span *ngIf="address?.errors?.['required']">Address is required.</span>
+          <span *ngIf="address?.errors?.['maxlength']">Max 300 characters.</span>
+        </span>
+      </div>
+
+      <div class="form-section-title">Identity Document</div>
+
+      <div class="form-group">
+        <label>Aadhaar Number</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="aadharNumber"
+          placeholder="12 digit Aadhaar number"
+          maxlength="12"
+          [ngClass]="{ 'is-invalid': aadharNumber?.invalid && aadharNumber?.touched }" />
+        <span class="error-text" *ngIf="aadharNumber?.invalid && aadharNumber?.touched">
+          <span *ngIf="aadharNumber?.errors?.['required']">Aadhaar number is required.</span>
+          <span *ngIf="aadharNumber?.errors?.['pattern']">Must be exactly 12 digits.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Aadhaar Document</label>
+        <div class="file-upload-box"
+          [ngClass]="{ 'has-file': selectedFile, 'has-error': fileError }">
+          <input
+            type="file"
+            id="aadharDoc"
+            class="file-input"
+            accept=".jpg,.jpeg,.png,.pdf"
+            (change)="onFileChange($event)" />
+          <label for="aadharDoc" class="file-label">
+            <span *ngIf="!selectedFile">Click to upload JPG, PNG or PDF (max 5MB)</span>
+            <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
+          </label>
+        </div>
+        <span class="error-text" *ngIf="fileError">{{ fileError }}</span>
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/dashboard" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Submitting...' : 'Submit KYC' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

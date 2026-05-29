@@ -1,0 +1,31 @@
+.card input {
+  margin-bottom: 10px;
+}
+.filter-bar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+
+.search-input{
+  max-width:260px;
+}
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.pagination-bar span {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.pagination-bar .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

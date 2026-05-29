@@ -1,0 +1,124 @@
+<div class="page">
+  <div class="page-header">
+    <button class="btn btn-secondary back-btn"
+            (click)="goBack()">
+      ← Back to Accounts
+    </button>
+    <h2>KYC Status</h2>
+    <p>Track your identity verification progress.</p>
+  </div>
+
+  <div class="loading-state card" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading KYC details...</p>
+  </div>
+
+  <div class="card not-submitted" *ngIf="!loading && !kyc">
+    <h3>No KYC Submitted</h3>
+    <p>You have not submitted your KYC documents yet.</p>
+    <a routerLink="/kyc/submit" class="btn btn-primary" style="margin-top: 16px;">
+      Submit KYC Now
+    </a>
+  </div>
+
+  <div class="kyc-details" *ngIf="!loading && kyc">
+
+    <div class="status-banner"
+      [ngClass]="{
+        'pending':  kyc.status === 1,
+        'approved': kyc.status === 2,
+        'rejected': kyc.status === 3
+      }">
+      <div class="status-left">
+        <div class="status-title">KYC {{ statusLabel }}</div>
+        <div class="status-sub" *ngIf="kyc.status === 1">
+          Your documents are under review. This usually takes 1-2 business days.
+        </div>
+        <div class="status-sub" *ngIf="kyc.status === 2">
+          Your KYC has been approved. Your bank account is now active.
+        </div>
+        <div class="status-sub" *ngIf="kyc.status === 3">
+          Reason: {{ kyc.rejectionReason || 'Not specified.' }}
+        </div>
+      </div>
+      <span class="badge" [ngClass]="statusClass">
+        {{ statusLabel }}
+      </span>
+    </div>
+
+    <div class="card steps-card">
+      <div class="steps">
+        <div class="step completed">
+          <div class="step-circle">1</div>
+          <div class="step-info">
+            <div class="step-label">Submitted</div>
+            <div class="step-date">{{ kyc.createdAt | date:'dd MMM yyyy' }}</div>
+          </div>
+        </div>
+
+        <div class="step-line" [ngClass]="{ 'active': kyc.status >= 2 }"></div>
+
+        <div class="step" [ngClass]="{ 'completed': kyc.status === 2, 'rejected': kyc.status === 3 }">
+          <div class="step-circle">2</div>
+          <div class="step-info">
+            <div class="step-label">Under Review</div>
+            <div class="step-date" *ngIf="kyc.status === 1">In Progress</div>
+            <div class="step-date" *ngIf="kyc.status >= 2">{{ kyc.reviewedAt | date:'dd MMM yyyy' }}</div>
+          </div>
+        </div>
+
+        <div class="step-line" [ngClass]="{ 'active': kyc.status === 2 }"></div>
+
+        <div class="step" [ngClass]="{ 'completed': kyc.status === 2, 'rejected': kyc.status === 3 }">
+          <div class="step-circle">3</div>
+          <div class="step-info">
+            <div class="step-label">{{ kyc.status === 3 ? 'Rejected' : 'Approved' }}</div>
+            <div class="step-date" *ngIf="kyc.status === 1">Pending</div>
+            <div class="step-date" *ngIf="kyc.status >= 2">{{ kyc.reviewedAt | date:'dd MMM yyyy' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Submitted Details</h3>
+      </div>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="detail-label">Full Name</span>
+          <span class="detail-value">{{ kyc.fullName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Date of Birth</span>
+          <span class="detail-value">{{ kyc.dateOfBirth }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Phone</span>
+          <span class="detail-value">{{ kyc.phone }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Aadhaar Number</span>
+          <span class="detail-value">XXXX XXXX {{ kyc.aadharNumber?.slice(-4) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Account Type</span>
+          <span class="detail-value">{{ accountTypeLabel }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Submitted On</span>
+          <span class="detail-value">{{ kyc.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <span class="detail-label">Address</span>
+          <span class="detail-value">{{ kyc.address }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-actions" *ngIf="kyc.status === 3">
+      <a routerLink="/kyc/submit" class="btn btn-primary">Resubmit KYC</a>
+    </div>
+
+  </div>
+</div>

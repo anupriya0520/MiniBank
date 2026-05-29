@@ -1,0 +1,81 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Admin Dashboard</h2>
+    <p>System overview and key metrics.</p>
+  </div>
+
+  <div class="loading-state card" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading dashboard...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">{{ dashboard.totalUsers }}</div>
+        <div class="stat-sub">Registered accounts</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Total Accounts</div>
+        <div class="stat-value">{{ dashboard.totalAccounts }}</div>
+        <div class="stat-sub">Bank accounts created</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Total Transactions</div>
+        <div class="stat-value">{{ dashboard.totalTransactions }}</div>
+        <div class="stat-sub">All time</div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-label">Pending KYC</div>
+        <div class="stat-value">{{ dashboard.pendingKycRequests }}</div>
+        <div class="stat-sub">Awaiting review</div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-label">Large Transaction Alerts</div>
+        <div class="stat-value">{{ dashboard.largeTransactionAlerts }}</div>
+        <div class="stat-sub">≥ ₹1,00,000</div>
+      </div>
+    </div>
+
+    
+
+    <div class="card" style="margin-top: 20px;" *ngIf="!loading">
+  <div class="card-header">
+    <h3>Recent Audit Logs</h3>
+    <a routerLink="/admin/audit-logs" class="view-all">View All</a>
+  </div>
+
+  <div class="empty-state" *ngIf="recentLogs.length === 0">
+    <p>No audit logs found.</p>
+  </div>
+
+  <div class="table-wrapper" *ngIf="recentLogs.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Details</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of recentLogs">
+          <td>{{ log.userName || 'System' }}</td>
+          <td><span class="badge badge-info">{{ log.action }}</span></td>
+          <td>{{ log.entity }}</td>
+          <td>{{ log.details || '—' }}</td>
+          <td>{{ log.createdAt | date:'dd MMM, hh:mm a' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+  </ng-container>
+</div>

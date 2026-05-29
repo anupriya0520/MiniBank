@@ -1,0 +1,16 @@
+<router-outlet />
+
+@let cfg = popupService.config();
+
+<app-popup
+  [visible]="popupService.visible()"
+  [type]="cfg.type"
+  [title]="cfg.title"
+  [message]="cfg.message"
+  [confirmText]="cfg.confirmText || 'OK'"
+  [cancelText]="cfg.cancelText || 'Cancel'"
+  [showCancel]="cfg.showCancel || false"
+  (onConfirm)="cfg.onConfirm?.(); popupService.close()"
+  (onCancel)="cfg.onCancel?.(); popupService.close()"
+  (onClose)="popupService.close()">
+</app-popup>

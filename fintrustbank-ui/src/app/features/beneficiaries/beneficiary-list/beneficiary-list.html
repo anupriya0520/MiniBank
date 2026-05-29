@@ -1,0 +1,116 @@
+<div class="page">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h2>My Beneficiaries</h2>
+      <p>Manage your saved payees for quick transfers.</p>
+    </div>
+    <a routerLink="/beneficiaries/add" class="btn btn-primary">
+      Add Beneficiary
+    </a>
+  </div>
+
+  <div class="loading-state card" *ngIf="loadingAccounts">
+    <div class="loading-spinner"></div>
+    <p>Loading accounts...</p>
+  </div>
+
+  <ng-container *ngIf="!loadingAccounts">
+    <div class="loading-state card" *ngIf="loadingBeneficiaries">
+      <div class="loading-spinner"></div>
+      <p>Loading beneficiaries...</p>
+    </div>
+
+    <div class="card empty-state" *ngIf="!loadingBeneficiaries && beneficiaries.length === 0">
+      <p>No beneficiaries added yet for this account.</p>
+      <a routerLink="/beneficiaries/add" class="btn btn-primary" style="margin-top: 12px;">
+        Add Your First Beneficiary
+      </a>
+    </div>
+
+    <div class="beneficiary-grid" *ngIf="!loadingBeneficiaries && beneficiaries.length > 0">
+      <div class="beneficiary-card card" *ngFor="let b of beneficiaries">
+
+        <div class="beneficiary-avatar">
+          {{ b.name?.charAt(0)?.toUpperCase() }}
+        </div>
+
+        <div class="beneficiary-info">
+  <div class="beneficiary-name">{{ b.name }}</div>
+  <div class="beneficiary-account">{{ b.accountNumber }}</div>
+  <span class="badge-external" *ngIf="b.isExternalBank">🌐 External</span>
+  <span class="badge-internal" *ngIf="!b.isExternalBank">🏦 Internal</span>
+</div>
+
+        <div class="beneficiary-actions">
+          <button class="btn btn-primary btn-sm" (click)="openTransferPopup(b)">
+            Transfer
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="confirmDelete(b.id, b.name)">
+            Remove
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </ng-container>
+</div>
+
+<!-- Transfer Modal -->
+<div class="transfer-modal-backdrop" *ngIf="transferPopupVisible">
+  <div class="transfer-modal">
+
+    <div class="transfer-modal-header">
+      <h3>Transfer Money</h3>
+      <button class="close-btn" (click)="transferPopupVisible=false">✕</button>
+    </div>
+
+    <div class="transfer-modal-body">
+
+      <div class="beneficiary-summary">
+        <div class="beneficiary-avatar">
+          {{ selectedBeneficiary?.name?.charAt(0)?.toUpperCase() }}
+        </div>
+        <div>
+          <div class="beneficiary-name">{{ selectedBeneficiary?.name }}</div>
+          <div class="beneficiary-account">{{ selectedBeneficiary?.accountNumber }}</div>
+          <!-- ADDED: show bank info in modal -->
+          <div class="beneficiary-bank" *ngIf="selectedBeneficiary?.bankName">
+            {{ selectedBeneficiary?.bankName }}
+            <span *ngIf="selectedBeneficiary?.ifscCode"> • {{ selectedBeneficiary?.ifscCode }}</span>
+            <span class="badge-external" *ngIf="selectedBeneficiary?.isExternalBank"> 🌐 External</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Amount</label>
+        <input
+          type="number"
+          class="form-control"
+          [(ngModel)]="transferAmount"
+          placeholder="Enter amount" />
+      </div>
+
+      <div class="form-group">
+        <label>Transfer PIN</label>
+        <input
+          type="password"
+          class="form-control"
+          [(ngModel)]="transferPin"
+          placeholder="Enter PIN" />
+      </div>
+
+    </div>
+
+    <div class="transfer-modal-footer">
+      <button class="btn btn-secondary" (click)="transferPopupVisible=false">
+        Cancel
+      </button>
+      <button class="btn btn-primary" [disabled]="transferLoading" (click)="confirmTransfer()">
+        {{ transferLoading ? 'Sending...' : 'Send' }}
+      </button>
+    </div>
+
+  </div>
+</div>

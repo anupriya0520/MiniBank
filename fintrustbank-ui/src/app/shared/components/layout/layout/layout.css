@@ -1,0 +1,8 @@
+/* src/app/shared/components/layout/layout.component.css */
+.main-content {
+  margin-left: 240px;
+  margin-top: 64px;
+  padding: 28px;
+  min-height: calc(100vh - 64px);
+  background: var(--bg);
+}

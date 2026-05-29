@@ -1,0 +1,92 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Transaction History</h2>
+    <p>View all transactions for your accounts.</p>
+  </div>
+  
+
+  <div class="card filter-bar">
+    <label>Select Account</label>
+    <select class="form-control" (change)="onAccountChange($event)" [disabled]="loadingAccounts">
+      <option *ngFor="let acc of accounts; trackBy: trackById" [value]="acc.id">
+        {{ acc.accountNumber }} - {{ getAccountTypeLabel(acc.accountType) }}
+      </option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="loading-state" *ngIf="loading">
+      <div class="loading-spinner"></div>
+      <p>Loading transactions...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && transactions.length === 0">
+      <p>No transactions found for this account.</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && transactions.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Transaction No</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Receiver</th>
+            <th>Status</th>
+            <th>Flagged</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr *ngFor="let tx of transactions; trackBy: trackById" [ngClass]="{ 'flagged-row': tx.isFlagged }">
+            <td>{{ tx.transactionNumber }}</td>
+            <td>
+              <span class="badge" [ngClass]="tx.typeClass">
+                {{ tx.typeLabel }}
+              </span>
+            </td>
+            <td [ngClass]="tx.isCredit ? 'credit' : 'debit'">
+              {{ tx.isCredit ? '+' : '-' }}₹{{ tx.amount | number:'1.2-2' }}
+            </td>
+            <td>
+  <span *ngIf="tx.receiverName">{{ tx.receiverName }}</span>
+  <span *ngIf="!tx.receiverName && tx.receiverAccountNumber">{{ tx.receiverAccountNumber }}</span>
+  <span *ngIf="!tx.receiverName && tx.receiverPhone && !tx.receiverAccountNumber">{{ tx.receiverPhone }}</span>
+  <span *ngIf="!tx.receiverName && !tx.receiverAccountNumber && !tx.receiverPhone">—</span>
+</td>
+            <td>
+              <span class="badge" [ngClass]="tx.statusClass">
+                {{ tx.statusLabel }}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-danger" *ngIf="tx.isFlagged">Flagged</span>
+              <span class="badge badge-muted" *ngIf="!tx.isFlagged">No</span>
+            </td>
+            <td>{{ tx.createdAt | date:'dd MMM yyyy, hh:mm a' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination-container" *ngIf="totalPages > 1">
+
+  <button class="btn btn-secondary"
+          (click)="prevPage()"
+          [disabled]="page === 1">
+    ← Previous
+  </button>
+
+  <span class="pagination-info">
+    Page <strong>{{ page }}</strong> of <strong>{{ totalPages }}</strong>
+  </span>
+
+  <button class="btn btn-secondary"
+          (click)="nextPage()"
+          [disabled]="page === totalPages">
+    Next →
+  </button>
+
+</div>
+    </div>
+  </div>
+</div>

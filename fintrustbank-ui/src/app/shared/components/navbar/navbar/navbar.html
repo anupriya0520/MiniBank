@@ -1,0 +1,25 @@
+<!-- src/app/shared/components/navbar/navbar.component.html -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span class="brand-name">FinTrust</span>
+    <span class="brand-tag">Banking</span>
+  </div>
+
+  <div class="navbar-right">
+    <div class="user-info">
+      <div class="user-avatar">
+        {{ user?.name?.charAt(0)?.toUpperCase() }}
+      </div>
+      <div class="user-details">
+        <span class="user-name">{{ user?.name }}</span>
+        
+      </div>
+    </div>
+
+    <div class="navbar-divider"></div>
+
+    <button class="logout-btn" (click)="onLogout()">
+      Logout
+    </button>
+  </div>
+</nav>

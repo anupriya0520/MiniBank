@@ -1,0 +1,118 @@
+<div class="page">
+
+  <div class="page-header">
+    <button class="btn btn-secondary back-btn"
+            (click)="goBack()">
+      ← Back to Accounts
+    </button>
+    <h2>Transfer PIN</h2>
+    <p>Set or update your transfer PIN to enable withdrawals and transfers.</p>
+  </div>
+
+  <div class="form-wrapper card">
+
+    <div class="loading-state" *ngIf="loadingAccounts">
+      <div class="loading-spinner"></div>
+      <p>Loading...</p>
+    </div>
+
+    <form
+      [formGroup]="setPinForm"
+      (ngSubmit)="onSetPin()"
+      *ngIf="!loadingAccounts && !hasPin">
+
+      <div class="form-group">
+        <label>Select Account</label>
+        <select class="form-control" formControlName="accountId">
+          <option value="" disabled>-- Select Account --</option>
+          <option *ngFor="let acc of accounts" [value]="acc.id">
+            {{ acc.accountNumber }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>New PIN (4-6 digits)</label>
+        <input
+          type="password"
+          class="form-control"
+          formControlName="pin"
+          placeholder="Enter 4 to 6 digit PIN"
+          maxlength="6"
+          inputmode="numeric"
+          pattern="\d*">
+      </div>
+
+      <div class="info-box">
+        Setting a PIN will enable transfers and withdrawals on your account.
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/accounts" class="btn btn-secondary">
+          Cancel
+        </a>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="loading">
+          {{ loading ? 'Setting PIN...' : 'Set PIN' }}
+        </button>
+      </div>
+    </form>
+
+    <form
+      [formGroup]="updatePinForm"
+      (ngSubmit)="onUpdatePin()"
+      *ngIf="!loadingAccounts && hasPin">
+
+      <div class="form-group">
+        <label>Select Account</label>
+        <select class="form-control" formControlName="accountId">
+          <option value="" disabled>-- Select Account --</option>
+          <option *ngFor="let acc of accounts" [value]="acc.id">
+            {{ acc.accountNumber }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Old PIN</label>
+        <input
+          type="password"
+          class="form-control"
+          formControlName="oldPin"
+          placeholder="Enter current PIN"
+          maxlength="6"
+          inputmode="numeric"
+          pattern="\d*">
+      </div>
+
+      <div class="form-group">
+        <label>New PIN (4-6 digits)</label>
+        <input
+          type="password"
+          class="form-control"
+          formControlName="newPin"
+          placeholder="Enter new PIN"
+          maxlength="6"
+          inputmode="numeric"
+          pattern="\d*">
+      </div>
+
+      <div class="form-actions">
+        <a routerLink="/accounts" class="btn btn-secondary">
+          Cancel
+        </a>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="loading">
+          {{ loading ? 'Updating...' : 'Update PIN' }}
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

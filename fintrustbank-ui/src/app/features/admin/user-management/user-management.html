@@ -1,0 +1,128 @@
+<div class="page-header">
+  <h2>User Management</h2>
+  <p>Activate or deactivate users</p>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+
+  <!-- ✅ Dynamic search — no Search button needed -->
+  <input
+    class="form-control search-input"
+    placeholder="Search by name or email"
+    [ngModel]="search"
+    (ngModelChange)="onSearchInput($event)"
+  />
+
+  <!-- ✅ All filter buttons blue, active one gets bold outline -->
+  <button
+    class="btn btn-primary"
+    [class.active-filter]="status === 'all'"
+    (click)="filterStatus('all')">
+    All
+  </button>
+
+  <button
+    class="btn btn-primary"
+    [class.active-filter]="status === 'active'"
+    (click)="filterStatus('active')">
+    Active
+  </button>
+
+  <button
+    class="btn btn-primary"
+    [class.active-filter]="status === 'inactive'"
+    (click)="filterStatus('inactive')">
+    Inactive
+  </button>
+
+  <button class="btn btn-secondary" (click)="clearFilters()">
+    Clear
+  </button>
+
+</div>
+
+<!-- Users Table -->
+<div class="card table-wrapper">
+  <table>
+    <thead>
+  <tr>
+    <th>S.No</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Accounts</th>
+    <th>KYC</th>
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+    <tbody>
+      <tr *ngFor="let user of users;let i=index">
+        <td>{{(page-1)*pageSize+i+1}}</td>
+        <td>{{user.fullName}}</td>
+        <td>{{user.email}}</td>
+        <td>{{user.accountCount}}</td>
+        <td>
+          <span class="badge badge-info">{{user.kycStatus}}</span>
+        </td>
+        <td>
+          <span
+            class="badge"
+            [ngClass]="user.isActive ? 'badge-success' : 'badge-danger'">
+            {{user.isActive ? 'Active' : 'Inactive'}}
+          </span>
+        </td>
+        <td>
+          <button
+            class="btn"
+            [ngClass]="user.isActive ? 'btn-warning' : 'btn-success'"
+            (click)="toggleUser(user)">
+            {{user.isActive ? 'Deactivate' : 'Activate'}}
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="users.length === 0">
+        <td colspan="6" style="text-align:center;">No users found</td>
+      </tr>
+      <tr *ngIf="users.length === 0">
+  <td colspan="7" style="text-align:center;">No users found</td>
+</tr>
+    </tbody>
+  </table>
+  <!-- Pagination -->
+<div class="pagination-bar">
+  <button
+    class="btn btn-secondary"
+    (click)="prevPage()"
+    [disabled]="page === 1">
+    Prev
+  </button>
+
+  <span>Page {{ page }}</span>
+
+  <button
+    class="btn btn-secondary"
+    (click)="nextPage()"
+    [disabled]="users.length < pageSize">
+    Next
+  </button>
+</div>
+</div>
+
+
+
+<!-- Popup -->
+<app-popup
+  [visible]="popupVisible"
+  [type]="popupType"
+  [title]="popupTitle"
+  [message]="popupMessage"
+  confirmText="Yes"
+  cancelText="No"
+  [showCancel]="true"
+  [showInput]="true"
+  inputPlaceholder="Enter reason (optional)"
+  (onConfirm)="confirmToggle($event)"
+  (onCancel)="cancelPopup()"
+  (onClose)="cancelPopup()">
+</app-popup>

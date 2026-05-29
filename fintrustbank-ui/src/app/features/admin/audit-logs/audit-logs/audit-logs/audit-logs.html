@@ -1,0 +1,83 @@
+<div class="page-header">
+  <h2>Audit Logs</h2>
+  <p>Track admin actions and system changes</p>
+</div>
+
+<div class="filter-bar">
+
+  <!-- ✅ dynamic search -->
+  <input
+    class="form-control"
+    placeholder="Search user / entity"
+    [ngModel]="search"
+    (ngModelChange)="onSearchInput($event)"
+  />
+
+  <!-- ✅ action dropdown triggers reload on change -->
+  <select
+    class="form-control"
+    [(ngModel)]="action"
+    (change)="onActionChange()">
+    <option value="">All Actions</option>
+    <option value="ActivateUser">Activate User</option>
+    <option value="DeactivateUser">Deactivate User</option>
+    <option value="ActivateAccount">Activate Account</option>
+    <option value="DeactivateAccount">Deactivate Account</option>
+    <option value="FlagTransaction">Flag Transaction</option>
+    <option value="UpdateUserStatus">Update User Status</option>
+  </select>
+
+  <!-- ✅ clear button -->
+  <button class="btn btn-secondary" (click)="clearFilters()">
+    Clear
+  </button>
+
+</div>
+
+<div class="card table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>S.No</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Entity</th>
+        <th>Description</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let log of logs; let i = index">
+        <td>{{ (page - 1) * pageSize + i + 1 }}</td>
+        <td>{{ log.userName }}</td>
+        <td>
+          <span class="badge badge-info">{{ log.action }}</span>
+        </td>
+        <td>{{ log.entity }}</td>
+<td>{{ log.details || '-' }}</td>  <!-- ✅ change description to details -->        <td>{{ log.createdAt | date:'short' }}</td>
+      </tr>
+      <tr *ngIf="logs.length === 0">
+        <td colspan="7" style="text-align:center;">No logs found</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ✅ pagination -->
+<div class="pagination-bar">
+  <button
+    class="btn btn-secondary"
+    (click)="prevPage()"
+    [disabled]="page === 1">
+    Prev
+  </button>
+
+  <span>Page {{ page }}</span>
+
+  <button
+    class="btn btn-secondary"
+    (click)="nextPage()"
+    [disabled]="logs.length < pageSize">
+    Next
+  </button>
+</div>

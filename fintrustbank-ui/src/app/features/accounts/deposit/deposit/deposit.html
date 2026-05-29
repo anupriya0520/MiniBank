@@ -1,0 +1,66 @@
+<div class="page">
+  <div class="page-header">
+    <h2>Deposit Money</h2>
+    <p>Add funds to your account. Minimum ₹500 required to activate a new account.</p>
+  </div>
+
+  <div class="form-wrapper card">
+
+    <div class="loading-state" *ngIf="loadingAccounts">
+      <div class="loading-spinner"></div>
+      <p>Loading accounts...</p>
+    </div>
+
+    <form [formGroup]="depositForm" (ngSubmit)="onSubmit()" *ngIf="!loadingAccounts">
+
+      <div class="form-group">
+        <label>Select Account</label>
+        <select
+          class="form-control"
+          formControlName="accountId"
+          [ngClass]="{ 'is-invalid': accountId?.invalid && accountId?.touched }">
+          <option value="" disabled>-- Select Account --</option>
+          <option *ngFor="let acc of accounts" [value]="acc.id">
+  {{ getAccountTypeLabel(acc.accountType) }} - {{ acc.accountNumber }}
+</option>
+        </select>
+        <span class="error-text" *ngIf="accountId?.invalid && accountId?.touched">
+          Please select an account.
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Amount (₹)</label>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="amount"
+          placeholder="Enter amount"
+          [ngClass]="{ 'is-invalid': amount?.invalid && amount?.touched }" />
+        <span class="error-text" *ngIf="amount?.invalid && amount?.touched">
+          <span *ngIf="amount?.errors?.['required']">Amount is required.</span>
+          <span *ngIf="amount?.errors?.['min']">Amount must be greater than 0.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Description (Optional)</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="description"
+          placeholder="e.g. Initial deposit" />
+      </div>
+
+      
+
+      <div class="form-actions">
+        <a routerLink="/accounts" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Processing...' : 'Deposit' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
