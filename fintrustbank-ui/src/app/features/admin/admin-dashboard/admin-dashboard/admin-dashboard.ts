@@ -19,6 +19,7 @@ export class AdminDashboardComponent implements OnInit {
   dashboard: any = null;
   recentLogs: any[] = [];
   loading = true;
+ hello=true;
 
   ngOnInit() {
     this.loadDashboard();
